@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 cats/
-"botto icon.png"
+botto\ icon.png
