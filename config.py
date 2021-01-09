@@ -1,2 +1,2 @@
-commands, helpPlaintext, helpPages, emojis = {}, {}, {}, {}
-lastMessage, commandPrefix, startTime = '', '', ''
+commands, helpPages, emojis = {}, {}, {}
+lastMessage, commandPrefix, emojiPrefix, startTime = '', '', '', ''

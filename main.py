@@ -24,6 +24,7 @@ def init():
         TOKEN = os.getenv('memeydevtoken')
         config.commandPrefix = ';md'
 
+    config.emojiPrefix = config.commandPrefix + 'e'
     config.startTime = datetime.now()
     CLIENT.run(TOKEN)
 
@@ -48,10 +49,14 @@ async def on_message(message):
         try:
             await config.commands[command[0].lower()](CLIENT, message)
         except KeyError as k:
-            try:
-                await message.channel.send(numOfEmojis(command, len(command)))
-            except KeyError:
-                await message.channel.send('emoji(s) not found')
+            await message.channel.send('command not found')
+    elif command[0] == config.emojiPrefix:
+        del command[0]
+
+        try:
+            await message.channel.send(numOfEmojis(command, len(command)))
+        except KeyError:
+            await message.channel.send('emoji(s) not found')
 
 @CLIENT.event
 async def on_raw_reaction_remove(payload):
@@ -108,9 +113,8 @@ def generateHelp():
     currentCommand = 1
     totalCommands = len(config.commands) + 1
     for x in range(totalCommands):
-        config.helpPages[x] = discord.Embed(title="Commands {}/{}".format(x + 1, math.ceil(totalCommands / 4)), description="usage: " + config.commandPrefix + " <command>", color=0x773c8f)
+        config.helpPages[x] = discord.Embed(title="Commands {}/{}".format(x + 1, math.ceil(totalCommands / 4)), description="**usage:** " + config.commandPrefix + " <command> " + config.emojiPrefix + " <emoji name>", color=0x773c8f)
 
-    config.helpPages[pageNum].add_field(name="emoji name (w/o colons)", value="prints specified emoji", inline=False)
     for key in config.commands:
         if (currentCommand == 4):
             pageNum += 1
@@ -118,9 +122,6 @@ def generateHelp():
 
         config.helpPages[pageNum].add_field(name=key, value=config.commands[key].__doc__, inline=False)
         currentCommand += 1
-
-    for key in config.commands:
-        config.helpPlaintext[key] = (key + " - " + config.commands[key].__doc__)
 
 def numOfEmojis(command, size):
     returnText = ''
