@@ -11,7 +11,7 @@ async def parrot(client, message):
 
 async def parrotDel(client, message):
     """Reposts message text and deletes original msg"""
-    messageTxt = message.content.replace(' parrotdel ', '').replace(config.commandPrefix, '')
+    messageTxt = message.content.replace(' parrotd ', '').replace(config.commandPrefix, '')
     await message.channel.send(messageTxt)
     await message.delete()
 

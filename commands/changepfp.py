@@ -15,8 +15,12 @@ async def changePfp(client, message):
     try:
         #change back to default nick/pfp
         if (len(messageTxt) > 1 and (messageTxt[1] == 'default')):
-            with open(r'botto icon.png', 'rb') as f:
-                image = f.read()
+            if (config.commandPrefix == ';md'):
+                with open(r'../bot icon dev.png', 'rb') as f:
+                    image = f.read()
+            else:
+                with open(r'../botto icon.png', 'rb') as f:
+                    image = f.read()
             await client.user.edit(avatar=image)
             nick = await message.guild.me.edit(nick='memey')
             await message.channel.send('changed back to default pfp and nickname')
@@ -43,6 +47,7 @@ async def changePfp(client, message):
                     html = await response.read()
                     await client.user.edit(avatar=html)
     except Exception as e:
+        print(e)
         await message.channel.send('discord timeout error')
         return
 

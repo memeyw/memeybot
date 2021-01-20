@@ -8,6 +8,8 @@ import re
 import os
 import sys
 import glob
+import traceback
+import sqlhelpers
 
 import config
 from commands import *
@@ -39,7 +41,7 @@ async def on_ready():
 @CLIENT.event
 async def on_message(message):
     if (message.author) == CLIENT.user:
-        config.lastMessage = message
+        config.lastMessage[message.guild.id] = message
         return
 
     command = message.content.split(" ")
@@ -49,14 +51,25 @@ async def on_message(message):
         try:
             await config.commands[command[0].lower()](CLIENT, message)
         except KeyError as k:
+            traceback.print_exc()
             await message.channel.send('command not found')
     elif command[0] == config.emojiPrefix:
         del command[0]
 
         try:
-            await message.channel.send(numOfEmojis(command, len(command)))
-        except KeyError:
-            await message.channel.send('emoji(s) not found')
+            await message.channel.send(numOfEmojis(command, len(command), message.guild.id))
+        except KeyError as e:
+            if (str(e).lower().replace("'", "") + "1" in config.emojis):
+                emoji = str(e).lower().replace("'", "")
+                msg = str(e) + " not found. However, these exist:"
+                num = 1
+                while (emoji + str(num).zfill(1) in config.emojis):
+                    msg += "\n" + emoji + str(num).zfill(1) + " - " + config.emojis[emoji + str(num).zfill(1)]
+                    num += 1
+                await message.channel.send(msg)
+            else:
+                traceback.print_exc()
+                await message.channel.send('emoji(s) not found')
 
 @CLIENT.event
 async def on_raw_reaction_remove(payload):
@@ -123,11 +136,28 @@ def generateHelp():
         config.helpPages[pageNum].add_field(name=key, value=config.commands[key].__doc__, inline=False)
         currentCommand += 1
 
-def numOfEmojis(command, size):
+def numOfEmojis(command, size, serverid):
     returnText = ''
     for x in range(size):
         returnText += config.emojis[command[x].lower()]
+        updateStats(config.emojis[command[x].lower()], serverid)
 
     return returnText
+
+def updateStats(emoteName, serverid):
+    sqlhelpers.checkForTable('emotes', serverid)
+    con = sqlhelpers.connectToDB(config.emojiDBPath + 'stats' + config.commandPrefix + str(serverid) + '.db')
+    con.row_factory = sqlhelpers.dict_factory
+    cursor = con.cursor()
+    cursor.execute("select emoteName from emotes where emoteName = ?", (emoteName,))
+    data = cursor.fetchall()
+    if not data:
+        print("No emote found")
+        cursor.execute("insert into emotes values(?, ?)", (emoteName, 1))
+        con.commit()
+    else:
+        timesUsed = [timesUsed["timesUsed"] for timesUsed in cursor.execute("select timesUsed from emotes where emoteName = ?", (emoteName,))]
+        cursor.execute("update emotes set timesUsed = ? where emoteName = ?", (timesUsed[0] + 1,emoteName))
+        con.commit()
 
 init()
