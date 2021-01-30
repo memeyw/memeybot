@@ -57,7 +57,7 @@ async def clearStats(client, message):
         await message.channel.send("Clear stats request timed out.")
 
 async def removeStat(client, message):
-    """clears emoji usage stats"""
+    """removes specific emoji stats"""
     params = message.content.replace("{} ".format(config.commandPrefix), '').split(" ")
     del params[0]
     if (len(params) == 0):

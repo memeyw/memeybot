@@ -48,6 +48,10 @@ async def on_message(message):
     if command[0] == config.commandPrefix:
         del command[0]
 
+
+    if ("ping" in command):
+        config.ping = datetime.now()
+
         try:
             await config.commands[command[0].lower()](CLIENT, message)
         except KeyError as k:
